@@ -4,7 +4,18 @@
 	<title>Login and Registration</title>
 </head>
 <body>
+<h1>Login</h1>
 <form action="/process" method="post">
+	<input type="hidden" name="form_type" value="login">
+	<label for="email">Email</label>
+	<input type="text" name="email" id="email">
+	<label for="password">Password</label>
+	<input type="password" name="password" id="password">
+	<button>Login</button>
+</form>
+<h1>Register</h1>
+<form action="/process" method="post">
+	<input type="hidden" name="form_type" value="register">
 	<label for="first_name">First Name</label>
 	<input type="text" name="first_name" id="first_name">
 	<label for="last_name">Last Name</label>
@@ -15,7 +26,7 @@
 	<input type="password" name="password" id="password">
 	<label for="confirm_password">Confirm Password</label>
 	<input type="password" name="confirm_password" id="confirm_password">
-	<button>Submit</button>
+	<button>Register</button>
 </form>
 </body>
 </html>
