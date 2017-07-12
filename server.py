@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, flash, session
 from mysqlconnection import MySQLConnector
 import re
+import md5
+import os, binascii
 app = Flask(__name__)
 app.secret_key = 'sdf1j3kjf02i9efhwj'
 mysql = MySQLConnector(app,'lardb')
@@ -71,12 +73,15 @@ def process():
 
 		if valid:
 			flash('Registration successful! Thank you!', 'register')
-			query = "INSERT INTO users(first_name, last_name, email, password, created_at, updated_at) VAlUES(:first_name, :last_name, :email, :password, NOW(), NOW())"
+			salt = binascii.b2a_hex(os.urandom(15)) #15 is number of bytes we get back. b2a turns string into normal alphanumeric string
+			
+			query = "INSERT INTO users(first_name, last_name, email, password, salt, created_at, updated_at) VAlUES(:first_name, :last_name, :email, :password, :salt, NOW(), NOW())"
 			data = {
 				'first_name': request.form['first_name'],
 				'last_name': request.form['last_name'],
 				'email': request.form['email'],
-				'password': request.form['password']
+				'password': md5.md5(request.form['password'] + salt).hexdigest(),
+				'salt': salt
 			}
 			mysql.query_db(query, data)
 		return redirect('/')
@@ -89,11 +94,13 @@ def process():
 		if not EMAIL_REGEX.match(request.form['email']):
 			flash('Invalid email!', 'login_email')
 		#check password
-		users = mysql.query_db("SELECT users.id as id, users.email as email, users.password as password FROM users")
+		users = mysql.query_db("SELECT users.id as id, users.email as email, users.password as password, users.salt as salt FROM users")
 		email_in_db = False
 		for user in users:
 			if request.form['email'] == user['email']:
-				if request.form['password'] == user['password']:
+				print user
+				hashed_password = md5.md5(request.form['password'] + user['salt']).hexdigest()
+				if hashed_password == user['password']:
 					session['user'] = user['id']
 				else:
 					flash('Email and password do not match!', 'login_pass')
